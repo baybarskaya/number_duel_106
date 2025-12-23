@@ -146,9 +146,9 @@ Admin Panel: [http://localhost:8000/admin](http://localhost:8000/admin)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'numberduel106_db',
-        'USER': 'erkancode',
-        'PASSWORD': '1201',
+        'NAME': 'your_database_name',
+        'USER': 'your_database_user',
+        'PASSWORD': 'your_database_password',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
@@ -226,7 +226,6 @@ SECRET_KEY=your-production-secret-key
 DEBUG=False
 ALLOWED_HOSTS=your-domain.com
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
-REDIS_URL=redis://your-elasticache-url:6379
 ```
 
 ### 2. Static Files
