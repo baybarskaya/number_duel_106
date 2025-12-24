@@ -5,10 +5,9 @@ import { authAPI, gameAPI } from '../utils/api';
 const Profile = () => {
     const [profile, setProfile] = useState(null);
     const [transactions, setTransactions] = useState([]);
-    const [filter, setFilter] = useState('all'); // 'all', 'win', 'loss'
+    const [filter, setFilter] = useState('all');
     const navigate = useNavigate();
 
-    // Profil ve transaction'ları yükle
     useEffect(() => {
         loadProfile();
         loadTransactions();
@@ -20,7 +19,6 @@ const Profile = () => {
             setProfile(response.data);
         } catch (err) {
             console.error('Profil yüklenemedi:', err);
-            // Token geçersizse login'e yönlendir
             if (err.response?.status === 401) {
                 navigate('/login');
             }
@@ -36,7 +34,6 @@ const Profile = () => {
         }
     };
 
-    // Filtreli transaction'lar
     const filteredTransactions = transactions.filter(tx => {
         if (filter === 'win') return tx.amount > 0;
         if (filter === 'loss') return tx.amount < 0;
@@ -55,7 +52,6 @@ const Profile = () => {
 
     return (
         <div className="container mt-4">
-            {/* Header */}
             <div className="row mb-4">
                 <div className="col-md-12">
                     <button className="btn btn-secondary mb-3" onClick={() => navigate('/lobby')}>
@@ -65,7 +61,6 @@ const Profile = () => {
             </div>
 
             <div className="row">
-                {/* Sol - Profil Kartı */}
                 <div className="col-md-4">
                     <div className="card shadow">
                         <div className="card-header bg-primary text-white">
@@ -130,14 +125,12 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Sağ - Hesap Hareketleri */}
                 <div className="col-md-8">
                     <div className="card shadow">
                         <div className="card-header bg-info text-white">
                             <h5 className="mb-0">📜 Hesap Hareketleri</h5>
                         </div>
                         <div className="card-body">
-                            {/* Filtre Butonları */}
                             <div className="btn-group mb-3" role="group">
                                 <button 
                                     className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
@@ -159,7 +152,6 @@ const Profile = () => {
                                 </button>
                             </div>
 
-                            {/* Transaction Listesi */}
                             <div style={{maxHeight: '500px', overflowY: 'auto'}}>
                                 {filteredTransactions.length === 0 ? (
                                     <div className="alert alert-info">

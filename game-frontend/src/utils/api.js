@@ -2,12 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-// Axios instance oluştur
 const api = axios.create({
     baseURL: API_BASE_URL,
 });
-
-// Request interceptor - Her isteğe token ekle
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
@@ -21,20 +18,17 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor - Token yenileme mekanizması
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // 401 hatası ve henüz retry yapılmamışsa
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
                 const refreshToken = localStorage.getItem('refresh_token');
                 
-                // Refresh token ile yeni access token al
                 const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
                     refresh: refreshToken
                 });
@@ -42,11 +36,9 @@ api.interceptors.response.use(
                 const newAccessToken = response.data.access;
                 localStorage.setItem('access_token', newAccessToken);
 
-                // Başarısız olan isteği yeni token ile tekrar dene
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
             } catch (refreshError) {
-                // Refresh token da geçersizse, logout yap
                 localStorage.clear();
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
@@ -57,7 +49,6 @@ api.interceptors.response.use(
     }
 );
 
-// API fonksiyonları
 export const authAPI = {
     login: (username, password) => 
         api.post('/auth/login/', { username, password }),

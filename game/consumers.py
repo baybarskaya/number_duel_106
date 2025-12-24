@@ -10,7 +10,7 @@ from datetime import timedelta
 User = get_user_model()
 
 class GameConsumer(AsyncWebsocketConsumer):
-    disconnect_timers = {}  # Class variable for disconnect tracking
+    disconnect_timers = {}
     
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -23,19 +23,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         print(f"🔌 WebSocket bağlandı: User {self.user_id}, Room {self.room_id}")
 
-        # Disconnect timer varsa iptal et (reconnect durumu)
         timer_key = f"{self.room_id}_{self.user_id}"
         if timer_key in self.disconnect_timers:
             print(f"⏱️ Disconnect timer iptal edildi (reconnect): User {self.user_id}")
             self.disconnect_timers[timer_key].cancel()
             del self.disconnect_timers[timer_key]
 
-        # Oyun verilerini başlat (Sadece ilk bağlanan için değil, oda dolduğunda)
         if await self.is_room_full():
-            # GameSession var mı kontrol et, yoksa başlat
             game_exists = await self.game_session_exists()
             if not game_exists:
-                # İlk kez oyun başlıyor - bahisleri çek!
                 success = await self.lock_bets()
                 if success:
                     await self.start_game()
@@ -44,7 +40,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                         'error': 'Bahis kilitlenemedi! Oyun başlatılamıyor.'
                     }))
             else:
-                # Mevcut oyun durumunu gönder
                 await self.send_current_game_state()
 
     async def disconnect(self, close_code):
@@ -54,11 +49,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             game_state = await self.get_game_state()
             
             if not game_state:
-                # Oyun henüz başlamamış - odayı OPEN'a çevir
                 print(f"⚠️ Oyun başlamamış, oda OPEN'a çevriliyor")
                 await self.reset_room_and_refund()
             else:
-                # Oyun başlamış - 30 saniye timer
                 if not game_state.get('winner_id'):
                     print(f"⏱️ 30 saniye disconnect timer başlatıldı: User {self.user_id}")
                     

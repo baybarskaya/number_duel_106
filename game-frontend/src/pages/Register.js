@@ -25,13 +25,11 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        // Şifre eşleşme kontrolü
         if (formData.password !== formData.password2) {
             setError('Şifreler eşleşmiyor!');
             return;
         }
 
-        // Şifre uzunluk kontrolü
         if (formData.password.length < 8) {
             setError('Şifre en az 8 karakter olmalı!');
             return;
@@ -47,7 +45,6 @@ const Register = () => {
                 birth_date: formData.birth_date
             });
 
-            // Token'ları localStorage'a kaydet
             localStorage.setItem('access_token', response.data.tokens.access);
             localStorage.setItem('refresh_token', response.data.tokens.refresh);
             localStorage.setItem('user_id', String(response.data.user.id)); // String olarak kaydet
@@ -56,7 +53,6 @@ const Register = () => {
             
             console.log('Kayıt başarılı - User ID:', response.data.user.id, typeof response.data.user.id);
 
-            // Lobby'ye yönlendir
             navigate('/lobby');
         } catch (err) {
             const errorMsg = err.response?.data?.username?.[0] 

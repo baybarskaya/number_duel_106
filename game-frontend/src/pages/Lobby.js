@@ -16,7 +16,6 @@ const Lobby = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Kullanıcı bilgilerini yükle
         const storedUsername = localStorage.getItem('username');
         const storedBalance = localStorage.getItem('balance');
         
@@ -27,15 +26,9 @@ const Lobby = () => {
 
         setUsername(storedUsername);
         setBalance(parseFloat(storedBalance) || 0);
-
-        // Bakiyeyi API'den güncelle
         loadBalance();
-        
-        // Odaları ve leaderboard'ı yükle
         loadRooms();
         loadLeaderboard();
-
-        // Her 3 saniyede bir odaları ve leaderboard'ı yenile
         const interval = setInterval(() => {
             loadRooms();
             loadLeaderboard();
@@ -80,7 +73,6 @@ const Lobby = () => {
             setShowCreateModal(false);
             setNewRoom({ name: '', bet_amount: 10 });
             
-            // Oda oluşturulduktan sonra creator otomatik olarak oyun sayfasına gitsin
             const roomId = response.data.id;
             navigate(`/game/${roomId}`);
         } catch (err) {
@@ -104,7 +96,6 @@ const Lobby = () => {
 
     return (
         <div className="container mt-4">
-            {/* Header */}
             <div className="row mb-4">
                 <div className="col-md-8">
                     <h2>🎮 Oyun Lobisi</h2>
@@ -134,7 +125,6 @@ const Lobby = () => {
                 </div>
             </div>
 
-            {/* İstatistikler ve Oda Oluştur */}
             <div className="row mb-3">
                 <div className="col-md-8">
                     <div className="d-flex gap-3">
@@ -156,9 +146,7 @@ const Lobby = () => {
                 </div>
             </div>
 
-            {/* Odalar ve Leaderboard */}
             <div className="row">
-                {/* Sol Taraf - Odalar */}
                 <div className="col-md-8">
                 {rooms.length === 0 ? (
                     <div className="col-12">
@@ -197,7 +185,6 @@ const Lobby = () => {
                                             {isFull && <span className="text-success ms-2">🟢 Canlı</span>}
                                         </p>
                                         
-                                        {/* Butonlar */}
                                         {isMyRoom ? (
                                             <button 
                                                 onClick={() => navigate(`/game/${room.id}`)} 
@@ -228,7 +215,6 @@ const Lobby = () => {
                 )}
                 </div>
                 
-                {/* Sağ Taraf - Leaderboard */}
                 <div className="col-md-4">
                     <div className="card shadow">
                         <div className="card-header bg-warning text-dark">
@@ -302,7 +288,6 @@ const Lobby = () => {
                 </div>
             </div>
 
-            {/* Oda Oluştur Modal */}
             {showCreateModal && (
                 <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
                     <div className="modal-dialog">

@@ -20,8 +20,6 @@ const GameBoard = () => {
         betAmount: null
     });
     const logsEndRef = useRef(null);
-
-    // WebSocket bağlantısı (JWT token ile)
     const token = localStorage.getItem('access_token');
     const wsUrl = `ws://127.0.0.1:8000/ws/game/${roomId}/?token=${token}`;
     
@@ -34,7 +32,6 @@ const GameBoard = () => {
             },
             reconnectAttempts: 20,
             reconnectInterval: (attemptNumber) => {
-                // Exponential backoff: 1s, 2s, 4s, 8s, max 10s
                 return Math.min(1000 * Math.pow(2, attemptNumber), 10000);
             },
             onOpen: () => {
@@ -50,13 +47,12 @@ const GameBoard = () => {
             onError: (event) => {
                 console.error('WebSocket hatası:', event);
             },
-            share: false, // Her component kendi bağlantısını kullansın
+            share: false,
             retryOnError: true,
         }
     );
 
     useEffect(() => {
-        // Kullanıcı ID'sini al (INTEGER olarak)
         const userId = parseInt(localStorage.getItem('user_id'));
         const username = localStorage.getItem('username');
         
@@ -66,48 +62,25 @@ const GameBoard = () => {
         }
         
         setMyUserId(userId);
-        
-        console.log('╔════════════════════════════════════════╗');
-        console.log('║     KULLANICI BİLGİLERİ (DEBUG)       ║');
-        console.log('╠════════════════════════════════════════╣');
-        console.log('║ User ID:', userId, '(type:', typeof userId, ')');
-        console.log('║ Username:', username);
-        console.log('║ localStorage user_id:', localStorage.getItem('user_id'));
-        console.log('╚════════════════════════════════════════╝');
+    
     }, [navigate]);
 
     useEffect(() => {
-        // WebSocket mesajlarını işle
         if (lastMessage !== null) {
             const data = JSON.parse(lastMessage.data);
             console.log('📨 WebSocket mesajı:', data);
-
-            // Hata mesajı (backend sıra kontrolü)
             if (data.error) {
-                console.log('╔════════════════════════════════════════╗');
-                console.log('║       BACKEND HATA (DEBUG)            ║');
-                console.log('╠════════════════════════════════════════╣');
-                console.error('║ Hata Mesajı:', data.error);
-                console.log('║ Benim ID:', myUserId);
-                console.log('║ Benim Username:', localStorage.getItem('username'));
-                console.log('║ ');
-                console.log('║ ⚠️ UYARI: ID uyuşmazlığı olabilir!');
-                console.log('║ Çözüm: logout yap + yeniden login yap');
-                console.log('╚════════════════════════════════════════╝');
                 
-                // Sadece log'a ekle, agresif alert gösterme
                 setLogs(prev => [...prev, {
                     text: `⚠️ ${data.error}`,
                     event: 'ERROR',
                     timestamp: new Date().toLocaleTimeString()
                 }]);
                 
-                // Scroll
                 scrollToBottom();
                 return;
             }
 
-            // Mesajı loglara ekle
             if (data.message) {
                 setLogs(prev => [...prev, {
                     text: data.message,
@@ -118,46 +91,28 @@ const GameBoard = () => {
                     timestamp: new Date().toLocaleTimeString()
                 }]);
                 
-                // Tahmin sayısını artır
                 if (data.event === 'CONTINUE') {
                     setGuessCount(prev => prev + 1);
                 }
             }
-
-            // Sıra bilgisini güncelle (INTEGER olarak)
             if (data.turn !== undefined && data.turn !== null) {
                 const turnId = parseInt(data.turn);
-                
-                console.log('╔════════════════════════════════════════╗');
-                console.log('║       SIRA GÜNCELLENDİ (DEBUG)        ║');
-                console.log('╠════════════════════════════════════════╣');
-                console.log('║ Yeni Sıra ID:', turnId, '(type:', typeof turnId, ')');
-                console.log('║ Benim ID:', myUserId, '(type:', typeof myUserId, ')');
-                console.log('║ Sıradaki İsim:', data.turn_name);
-                console.log('║ Eşit mi?', turnId === myUserId, '→', turnId, '===', myUserId);
-                console.log('║ Sıra Bende Mi?', turnId === myUserId ? '✅ EVET' : '❌ HAYIR');
-                console.log('╚════════════════════════════════════════╝');
+            
                 
                 setTurn(turnId);
             }
             
-            // Sıradaki oyuncunun adını güncelle
             if (data.turn_name) {
                 setTurnName(data.turn_name);
             }
 
-            // Oyun durumunu güncelle
             if (data.event === 'START') {
                 setGameStarted(true);
                 setGuessCount(0);
                 
-                // Bakiye bilgisini al
                 if (data.balances) {
-                    // Hangi oyuncunun bakiyesini göstereceğiz?
                     const creatorInfo = data.balances.creator;
                     const player2Info = data.balances.player2;
-                    
-                    // Kendi ID'mize göre seç
                     const myBalanceInfo = (creatorInfo.user_id === myUserId) 
                         ? creatorInfo 
                         : player2Info;
@@ -188,49 +143,39 @@ const GameBoard = () => {
                     gameEnded: gameEnded
                 });
                 
-                // Eğer oyun zaten bitmiş olarak işaretlenmişse (kullanıcı ayrıldı), ignore et
                 if (gameEnded) {
-                    console.log('⚠️ Oyun zaten bitti, WINNER event ignore ediliyor');
                     return;
                 }
                 
                 setGameEnded(true);
                 setDisconnectWarning(false);
-                
-                // Kazanan kim?
+            
                 const iAmWinner = data.winner_id === myUserId;
-                
-                // Kazanma sebebi nedir?
                 const isManualLeave = data.reason === 'manual_leave';
                 const isDisconnect = data.reason === 'disconnect';
                 
                 if (isManualLeave) {
-                    // Manuel ayrılma durumu
                     if (iAmWinner) {
-                        // Ben kazandım (rakip ayrıldı) - Mesaj göster
                         setTimeout(() => {
                             alert('🏆 Rakibiniz oyunu terketti!\n\nSiz kazandınız ve bahsi aldınız. 💰');
                             navigate('/lobby');
                         }, 500);
                     } else {
-                        // Ben ayrıldım - Mesaj GÖSTERME
-                        console.log('ℹ️ Ben oyunu terkettim, mesaj gösterme');
-                        // Hiçbir şey yapma
+                        // Ben manuel leave oldum ve kaybettim
+                        alert('❌ Oyundan ayrıldığınız için oyunu kaybettiniz.');
+                        navigate('/lobby');
                     }
                 } else if (isDisconnect) {
-                    // Disconnect durumu
                     if (iAmWinner) {
                         setTimeout(() => {
                             alert('🎉 Rakibiniz 30 saniye bağlantısız kaldı!\n\nSiz kazandınız ve bahsi aldınız. 💰');
                             navigate('/lobby');
                         }, 500);
                     } else {
-                        // Ben disconnect oldum ve kaybettim
                         alert('❌ 30 saniye bağlantısız kaldınız ve oyunu kaybettiniz.');
                         navigate('/lobby');
                     }
                 } else {
-                    // Normal kazanma (doğru tahmin)
                     const winMessage = iAmWinner 
                         ? '🎉 Tebrikler! Doğru sayıyı buldunuz ve bahsi kazandınız! 💰' 
                         : '😔 Rakibiniz doğru sayıyı buldu. Oyunu kaybettiniz.';
@@ -242,7 +187,6 @@ const GameBoard = () => {
                 }
             }
 
-            // Otomatik scroll
             scrollToBottom();
         }
     }, [lastMessage, navigate, myUserId]);
@@ -259,22 +203,10 @@ const GameBoard = () => {
             return;
         }
 
-        // WebSocket bağlantı kontrolü
         if (readyState !== ReadyState.OPEN) {
             alert('Bağlantı kuruluyor, lütfen bekleyin...');
             return;
         }
-
-        // Detaylı log (debug için)
-        console.log('=== Tahmin Gönderiliyor ===');
-        console.log('Tahmin:', guessNum);
-        console.log('Benim ID:', myUserId);
-        console.log('UI Sıra ID:', turn);
-        console.log('===========================');
-
-        // Frontend'de sıra kontrolü YAPMA!
-        // Backend zaten kontrol ediyor, ona güven.
-        // UI'da buton disabled zaten, kullanıcı yanlışlıkla tıklarsa backend reddeder.
         
         try {
             sendJsonMessage({ 
@@ -298,26 +230,21 @@ const GameBoard = () => {
         if (gameStarted && !gameEnded) {
             // Oyun devam ediyor - uyarı ver
             if (window.confirm('⚠️ Oyun devam ediyor! Ayrılırsan oyunu kaybedersin ve bahisini alamazsın. Emin misin?')) {
-                // Manuel ayrılma mesajı gönder
-                console.log('👋 Kullanıcı oyundan ayrılıyor...');
-                
+               
                 try {
                     sendJsonMessage({ action: 'leave_game' });
                 } catch (error) {
                     console.error('Leave mesajı gönderilemedi:', error);
                 }
                 
-                // Direkt lobiye git (WINNER mesajı gelirse ignore edilecek)
-                setGameEnded(true); // Bu sayede WINNER event'i ignore edilir
+                setGameEnded(true); 
                 navigate('/lobby');
             }
         } else {
-            // Oyun bitmemiş veya henüz başlamamış - direkt dön
             navigate('/lobby');
         }
     };
 
-    // WebSocket bağlantı durumları
     const connectionStatus = {
         [ReadyState.CONNECTING]: '🔄 Bağlanıyor...',
         [ReadyState.OPEN]: '🟢 Bağlı',
@@ -332,7 +259,6 @@ const GameBoard = () => {
 
     return (
         <div className="container mt-4">
-            {/* Disconnect Warning */}
             {disconnectWarning && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>⚠️ UYARI:</strong> Bağlantınız kesildi! 30 saniye içinde geri dönmezseniz oyunu kaybedersiniz!
@@ -344,7 +270,6 @@ const GameBoard = () => {
                 </div>
             )}
 
-            {/* Header */}
             <div className="card mb-4">
                 <div className="card-body">
                     <div className="row align-items-center">

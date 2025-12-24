@@ -20,16 +20,14 @@ const Login = () => {
                 password
             });
 
-            // Token'ları localStorage'a kaydet
             localStorage.setItem('access_token', response.data.tokens.access);
             localStorage.setItem('refresh_token', response.data.tokens.refresh);
-            localStorage.setItem('user_id', String(response.data.user.id)); // String olarak kaydet
+            localStorage.setItem('user_id', String(response.data.user.id)); 
             localStorage.setItem('username', response.data.user.username);
             localStorage.setItem('balance', response.data.user.balance);
             
             console.log('Login başarılı - User ID:', response.data.user.id, typeof response.data.user.id);
 
-            // Lobby'ye yönlendir
             navigate('/lobby');
         } catch (err) {
             setError(err.response?.data?.error || 'Giriş başarısız!');
