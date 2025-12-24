@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser
 
 class UserSerializer(serializers.ModelSerializer):
-    win_rate = serializers.ReadOnlyField()  # Property field
+    win_rate = serializers.ReadOnlyField()
     
     class Meta:
         model = CustomUser

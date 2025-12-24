@@ -10,14 +10,9 @@ from .models import CustomUser
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_view(request):
-    """
-    Kullanıcı kaydı - Yeni kullanıcı 1000 birim bakiye ile başlar
-    """
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
-        
-        # JWT Token oluştur
         refresh = RefreshToken.for_user(user)
         
         return Response({
@@ -34,19 +29,14 @@ def register_view(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_view(request):
-    """
-    Kullanıcı girişi - JWT token döner
-    """
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
-        
         user = authenticate(username=username, password=password)
         
         if user is not None:
             refresh = RefreshToken.for_user(user)
-            
             return Response({
                 'user': UserSerializer(user).data,
                 'tokens': {
@@ -56,7 +46,7 @@ def login_view(request):
             })
         else:
             return Response(
-                {'error': 'Invalid credentials'}, 
+                {'error': 'Kullanıcı adı veya şifre yanlış.'}, 
                 status=status.HTTP_401_UNAUTHORIZED
             )
     
@@ -66,9 +56,6 @@ def login_view(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def profile_view(request):
-    """
-    Kullanıcı profili ve bakiyesi
-    """
     user = request.user
     serializer = UserSerializer(user)
     return Response(serializer.data)
@@ -77,9 +64,6 @@ def profile_view(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def balance_view(request):
-    """
-    Kullanıcının güncel bakiyesi
-    """
     return Response({
         'balance': request.user.balance,
         'username': request.user.username

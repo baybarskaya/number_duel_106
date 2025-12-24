@@ -1,6 +1,3 @@
-"""
-WebSocket JWT Authentication Middleware
-"""
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 from django.contrib.auth.models import AnonymousUser
@@ -22,22 +19,16 @@ def get_user(user_id):
 
 
 class JWTAuthMiddleware(BaseMiddleware):
-    """
-    WebSocket bağlantılarında JWT token authentication
-    """
     
     async def __call__(self, scope, receive, send):
-        # Query string'den token al
         query_string = scope.get('query_string', b'').decode()
         params = parse_qs(query_string)
         token = params.get('token', [None])[0]
         
         if token:
             try:
-                # Token'ı doğrula
                 UntypedToken(token)
                 
-                # Token'dan user_id çıkar
                 decoded_data = jwt_decode(
                     token, 
                     settings.SECRET_KEY, 
@@ -45,7 +36,6 @@ class JWTAuthMiddleware(BaseMiddleware):
                 )
                 user_id = decoded_data.get('user_id')
                 
-                # User'ı al
                 scope['user'] = await get_user(user_id)
                 print(f"✅ WebSocket Auth Başarılı: {scope['user'].username} (ID: {scope['user'].id})")
                 

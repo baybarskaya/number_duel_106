@@ -18,15 +18,12 @@ class RoomSerializer(serializers.ModelSerializer):
         return count
 
     def validate_bet_amount(self, value):
-        # Global ayarlardan limitleri kontrol et
         config = GlobalSettings.objects.get_or_create(pk=1)[0]
         
         if value < config.min_bet or value > config.max_bet:
             raise serializers.ValidationError(
                 f"Bahis {config.min_bet} ile {config.max_bet} arasında olmalı!"
             )
-        
-        # Bakiye kontrolü
         if 'request' in self.context:
             user = self.context['request'].user
             if user.balance < value:

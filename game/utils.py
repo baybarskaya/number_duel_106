@@ -9,15 +9,12 @@ def process_game_results(room_id, winner_id):
         players = [room.creator, room.player2]
         winner = next(p for p in players if p.id == winner_id)
         loser = next(p for p in players if p.id != winner_id)
-
-        # Kazananın bakiyesini artır, kaybedeninkini azalt
         winner.balance += bet
         winner.save()
         
         loser.balance -= bet
         loser.save()
 
-        # Kayıtları oluştur
         Transaction.objects.create(user=winner, amount=bet, description=f"Oyun Kazanıldı: Oda #{room.id}")
         Transaction.objects.create(user=loser, amount=-bet, description=f"Oyun Kaybedildi: Oda #{room.id}")
         

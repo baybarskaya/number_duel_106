@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',  # CORS Support
+    'corsheaders', 
     'channels',
     'accounts',
     'game',
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS Middleware (en üstte olmalı)
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -120,8 +120,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
-
 AUTH_USER_MODEL = 'accounts.CustomUser'
 DATABASES = {
     'default': {
@@ -157,11 +155,8 @@ CHANNEL_LAYERS = {
     },
 }
 
-# CORS Configuration (React Frontend)
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",")
 CORS_ALLOW_CREDENTIALS = True
 
-
-# Default Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
